@@ -12,9 +12,9 @@
         
         // Tu configuración de Firebase (DEBES REEMPLAZAR ESTOS VALORES)
         const firebaseConfig = {
-            apiKey: "AIzaSyDAJV3AY9ZM-vhg0adLCQkDhnkXzjhGiuI",
+            apiKey: "AIzaSyDAJV3AY9ZM-vhgOadLCQkDhnkXzjhGiuI",
             authDomain: "amona-chef.firebaseapp.com",
-            databaseURL: "https://amona-chef-default-rtdb.europe-west1.firebasedatabase.app/",
+            databaseURL: "https://amona-chef-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "amona-chef",
             storageBucket: "amona-chef.firebasestorage.app",
             messagingSenderId: "254579214307",
@@ -173,67 +173,107 @@
             font-weight: 600;
         }
 
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .day-time-selector {
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e1e8ed;
+            transition: all 0.3s ease;
+        }
+
+        .day-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            cursor: pointer;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .day-checkbox {
+            order: 1;
+            transform: scale(1.2);
+            margin: 0;
+        }
+
+        .day-name {
+            order: 2;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .time-input {
+            order: 3;
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+            background: #f5f5f5;
+        }
+
         .days-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
             background: #ecf0f1;
+            padding: 10px;
         }
 
         .day-card {
             background: white;
-            padding: 20px;
-            min-height: 200px;
-            border-bottom: 3px solid #ecf0f1;
+            padding: 12px;
+            min-height: 120px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
-        }
-
-        .day-card:hover {
-            background: #f8f9fa;
-            transform: translateY(-2px);
         }
 
         .day-header {
             font-weight: 700;
             color: #2c3e50;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             text-align: center;
-            font-size: 1.1em;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 4px;
         }
 
         .meal-entry {
             background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            margin: 8px 0;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 14px;
-            box-shadow: 0 3px 10px rgba(253, 203, 110, 0.3);
-            animation: slideIn 0.3s ease;
+            margin: 4px 0;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            box-shadow: 0 1px 4px rgba(253, 203, 110, 0.3);
             position: relative;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
         }
 
         .meal-name {
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
+            font-size: 11px;
+            line-height: 1.2;
         }
 
         .meal-time {
-            font-size: 12px;
+            font-size: 10px;
             color: #636e72;
+            font-weight: 500;
         }
 
         .delete-btn {
@@ -241,14 +281,17 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
             position: absolute;
-            top: 5px;
-            right: 5px;
-            font-size: 12px;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
             line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .delete-btn:hover {
@@ -301,54 +344,152 @@
 
         @media (max-width: 768px) {
             .container {
-                margin: 10px;
+                margin: 5px;
                 border-radius: 10px;
             }
             
             .header {
-                padding: 20px;
+                padding: 15px;
             }
             
             .logo {
-                font-size: 2em;
+                font-size: 1.8em;
+            }
+            
+            .subtitle {
+                font-size: 1em;
             }
             
             .main-content {
-                padding: 20px;
+                padding: 15px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-number {
+                font-size: 2em;
+            }
+            
+            .form-section {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .days-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                margin-top: 10px;
+            }
+            
+            .day-time-selector {
+                border-radius: 6px;
+            }
+            
+            .day-label {
+                padding: 8px 4px;
+                gap: 6px;
+            }
+            
+            .day-name {
+                font-size: 12px;
+            }
+            
+            .time-input {
+                font-size: 11px;
+                padding: 4px;
+            }
+            
+            .days-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+                padding: 8px;
+            }
+            
+            .day-card {
+                padding: 8px;
+                min-height: 100px;
+                border-radius: 6px;
+            }
+            
+            .day-header {
+                font-size: 11px;
+                margin-bottom: 6px;
+                padding-bottom: 3px;
+            }
+            
+            .meal-entry {
+                margin: 3px 0;
+                padding: 4px;
+                border-radius: 4px;
+                font-size: 10px;
+            }
+            
+            .meal-name {
+                font-size: 10px;
+                margin-bottom: 1px;
+            }
+            
+            .meal-time {
+                font-size: 9px;
+            }
+            
+            .delete-btn {
+                width: 14px;
+                height: 14px;
+                font-size: 9px;
+                top: 1px;
+                right: 1px;
+            }
+            
+            .btn {
+                width: 100%;
+                padding: 12px;
+                margin-top: 15px;
+                font-size: 14px;
+            }
+
+            .realtime-indicator {
+                top: 5px;
+                right: 5px;
+                font-size: 10px;
+                padding: 6px 10px;
+            }
+            
+            .firebase-status {
+                padding: 10px;
+                margin-bottom: 15px;
+                font-size: 14px;
+            }
+            
+            .calendar-header {
+                padding: 15px;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .days-grid {
+                grid-template-columns: repeat(3, 1fr);
             }
             
             .days-container {
                 grid-template-columns: 1fr;
             }
             
-            .day-time-selector label {
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: stretch !important;
+            .day-card {
+                min-height: 80px;
             }
             
-            .day-time-selector label > input[type="time"] {
-                margin-left: 0 !important;
-                margin-top: 10px !important;
-                width: 100% !important;
-            }
-            
-            .day-time-selector label > span {
-                margin-bottom: 5px !important;
-            }
-            
-            .btn {
-                width: 100%;
-                padding: 15px;
-                margin-top: 20px;
-            }
-
-            .realtime-indicator {
-                position: fixed;
-                top: 10px;
-                right: 10px;
-                font-size: 10px;
-                padding: 8px 12px;
+            .stats {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -359,7 +500,7 @@
     <div class="container">
         <div class="header">
             <div class="logo">👵🍽️ Amona Chef</div>
-            <div class="subtitle">Planificador de Comidas Familiares - Tiempo Real</div>
+            <div class="subtitle">Planificador de Comidas Amona Elvira</div>
         </div>
 
         <div class="main-content">
@@ -388,54 +529,54 @@
                     
                     <div class="form-group">
                         <label>📅 Días y Horas de la Semana:</label>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div class="days-grid">
                             <div class="day-time-selector" data-day="lunes">
-                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
-                                    <input type="checkbox" value="lunes" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
-                                    <span style="flex: 1; font-weight: 600;">🌟 Lunes</span>
-                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                <label class="day-label">
+                                    <input type="checkbox" value="lunes" class="day-checkbox">
+                                    <span class="day-name">🌟 L</span>
+                                    <input type="time" class="time-input" disabled>
                                 </label>
                             </div>
                             <div class="day-time-selector" data-day="martes">
-                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
-                                    <input type="checkbox" value="martes" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
-                                    <span style="flex: 1; font-weight: 600;">🌈 Martes</span>
-                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                <label class="day-label">
+                                    <input type="checkbox" value="martes" class="day-checkbox">
+                                    <span class="day-name">🌈 M</span>
+                                    <input type="time" class="time-input" disabled>
                                 </label>
                             </div>
                             <div class="day-time-selector" data-day="miércoles">
-                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
-                                    <input type="checkbox" value="miércoles" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
-                                    <span style="flex: 1; font-weight: 600;">🌸 Miércoles</span>
-                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                <label class="day-label">
+                                    <input type="checkbox" value="miércoles" class="day-checkbox">
+                                    <span class="day-name">🌸 X</span>
+                                    <input type="time" class="time-input" disabled>
                                 </label>
                             </div>
                             <div class="day-time-selector" data-day="jueves">
-                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
-                                    <input type="checkbox" value="jueves" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
-                                    <span style="flex: 1; font-weight: 600;">🍀 Jueves</span>
-                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                <label class="day-label">
+                                    <input type="checkbox" value="jueves" class="day-checkbox">
+                                    <span class="day-name">🍀 J</span>
+                                    <input type="time" class="time-input" disabled>
                                 </label>
                             </div>
                             <div class="day-time-selector" data-day="viernes">
-                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
-                                    <input type="checkbox" value="viernes" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
-                                    <span style="flex: 1; font-weight: 600;">🎉 Viernes</span>
-                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                <label class="day-label">
+                                    <input type="checkbox" value="viernes" class="day-checkbox">
+                                    <span class="day-name">🎉 V</span>
+                                    <input type="time" class="time-input" disabled>
                                 </label>
                             </div>
                             <div class="day-time-selector" data-day="sábado">
-                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
-                                    <input type="checkbox" value="sábado" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
-                                    <span style="flex: 1; font-weight: 600;">🌺 Sábado</span>
-                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                <label class="day-label">
+                                    <input type="checkbox" value="sábado" class="day-checkbox">
+                                    <span class="day-name">🌺 S</span>
+                                    <input type="time" class="time-input" disabled>
                                 </label>
                             </div>
                             <div class="day-time-selector" data-day="domingo">
-                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
-                                    <input type="checkbox" value="domingo" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
-                                    <span style="flex: 1; font-weight: 600;">☀️ Domingo</span>
-                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                <label class="day-label">
+                                    <input type="checkbox" value="domingo" class="day-checkbox">
+                                    <span class="day-name">☀️ D</span>
+                                    <input type="time" class="time-input" disabled>
                                 </label>
                             </div>
                         </div>
@@ -635,16 +776,17 @@
             daySelectors.forEach(selector => {
                 const checkbox = selector.querySelector('.day-checkbox');
                 const timeInput = selector.querySelector('.time-input');
-                const label = selector.querySelector('label');
                 
                 checkbox.checked = false;
                 timeInput.value = '';
                 timeInput.disabled = true;
-                label.style.background = '#f8f9fa';
-                label.style.borderColor = '#e1e8ed';
-                label.style.color = 'inherit';
-                label.style.transform = 'scale(1)';
-                label.style.boxShadow = 'none';
+                selector.style.background = '#f8f9fa';
+                selector.style.borderColor = '#e1e8ed';
+                selector.style.color = 'inherit';
+                selector.style.transform = 'scale(1)';
+                selector.style.boxShadow = 'none';
+                timeInput.style.background = '#f5f5f5';
+                timeInput.style.color = '#999';
             });
         }
 
@@ -796,35 +938,36 @@
             daySelectors.forEach(selector => {
                 const checkbox = selector.querySelector('.day-checkbox');
                 const timeInput = selector.querySelector('.time-input');
-                const label = selector.querySelector('label');
                 
                 checkbox.addEventListener('change', function() {
                     if (this.checked) {
                         // Activar el día
-                        label.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-                        label.style.borderColor = '#667eea';
-                        label.style.color = 'white';
-                        label.style.transform = 'scale(1.02)';
+                        selector.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                        selector.style.borderColor = '#667eea';
+                        selector.style.color = 'white';
+                        selector.style.transform = 'scale(1.02)';
                         timeInput.disabled = false;
                         timeInput.style.background = '#fff';
+                        timeInput.style.color = '#2c3e50';
                         timeInput.focus();
                     } else {
                         // Desactivar el día
-                        label.style.background = '#f8f9fa';
-                        label.style.borderColor = '#e1e8ed';
-                        label.style.color = 'inherit';
-                        label.style.transform = 'scale(1)';
+                        selector.style.background = '#f8f9fa';
+                        selector.style.borderColor = '#e1e8ed';
+                        selector.style.color = 'inherit';
+                        selector.style.transform = 'scale(1)';
                         timeInput.disabled = true;
                         timeInput.value = '';
                         timeInput.style.background = '#f5f5f5';
+                        timeInput.style.color = '#999';
                     }
                 });
                 
                 timeInput.addEventListener('change', function() {
                     if (this.value && checkbox.checked) {
-                        label.style.boxShadow = '0 5px 15px rgba(102, 126, 234, 0.3)';
+                        selector.style.boxShadow = '0 3px 10px rgba(102, 126, 234, 0.3)';
                     } else {
-                        label.style.boxShadow = 'none';
+                        selector.style.boxShadow = 'none';
                     }
                 });
             });
