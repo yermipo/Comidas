@@ -14,7 +14,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyDAJV3AY9ZM-vhgOadLCQkDhnkXzjhGiuI",
             authDomain: "amona-chef.firebaseapp.com",
-            databaseURL: "https://amona-chef-default-rtdb.europe-west1.firebasedatabase.app",
+            databaseURL: "https://amona-chef-default-rtdb.europe-west1.firebasedatabase.app/",
             projectId: "amona-chef",
             storageBucket: "amona-chef.firebasestorage.app",
             messagingSenderId: "254579214307",
@@ -353,7 +353,7 @@
     <div class="container">
         <div class="header">
             <div class="logo">👵🍽️ Amona Chef</div>
-            <div class="subtitle">Planificador de Comidas Amona Elvira</div>
+            <div class="subtitle">Planificador de Comidas Familiares - Tiempo Real</div>
         </div>
 
         <div class="main-content">
@@ -435,7 +435,7 @@
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn" id="submitBtn" disabled>✨ Apuntar Comida</button>
+                    <button type="submit" class="btn" id="submitBtn">✨ Apuntar Comida</button>
                 </form>
             </div>
 
@@ -485,11 +485,7 @@
         async function initializeFirebase() {
             try {
                 // Verificar configuración
-                const config = {
-                    apiKey: "TU_API_KEY_AQUI"
-                };
-                
-                if (config.apiKey === "TU_API_KEY_AQUI") {
+                if (firebaseConfig.apiKey === "TU_API_KEY_AQUI") {
                     throw new Error("Por favor, configura Firebase con tus credenciales reales");
                 }
 
@@ -707,13 +703,15 @@
             generateWeeklyCalendar();
             updateStats();
             
+            // Configurar event listeners SIEMPRE (sin esperar Firebase)
+            setupEventListeners();
+            
             try {
                 await waitForFirebase();
                 await initializeFirebase();
                 
                 // Firebase está listo
                 isFirebaseReady = true;
-                document.getElementById('submitBtn').disabled = false;
                 updateFirebaseStatus(true);
                 updateRealtimeIndicator(true);
                 
@@ -721,10 +719,9 @@
                 console.error('Error inicializando la aplicación:', error);
                 updateFirebaseStatus(false, error.message);
                 updateRealtimeIndicator(false);
+                // Permitir uso sin Firebase
+                console.log('Aplicación funcionará sin Firebase (solo en memoria)');
             }
-
-            // Configurar event listeners
-            setupEventListeners();
         });
 
         // Configurar event listeners
@@ -732,11 +729,6 @@
             // Manejar el formulario
             document.getElementById('mealForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                if (!isFirebaseReady) {
-                    showNotification('❌ Firebase no está listo. Por favor, espera un momento.');
-                    return;
-                }
                 
                 const name = document.getElementById('grandchildName').value.trim();
                 
@@ -757,17 +749,33 @@
                 });
                 
                 if (name && selectedMeals.length > 0) {
-                    // Añadir comidas a Firebase
-                    selectedMeals.forEach(meal => {
-                        addMealToFirebase(name, meal.day, meal.time);
-                    });
+                    if (isFirebaseReady) {
+                        // Añadir comidas a Firebase
+                        selectedMeals.forEach(meal => {
+                            addMealToFirebase(name, meal.day, meal.time);
+                        });
+                    } else {
+                        // Añadir comidas en memoria (sin Firebase)
+                        selectedMeals.forEach(meal => {
+                            const newMeal = {
+                                id: Date.now() + Math.random(),
+                                name: name,
+                                day: meal.day,
+                                time: meal.time
+                            };
+                            meals.push(newMeal);
+                        });
+                        updateCalendar();
+                        updateStats();
+                    }
                     
                     // Limpiar formulario
                     clearForm();
                     
                     // Mostrar confirmación
                     const mealsText = selectedMeals.map(meal => `${meal.day} (${meal.time})`).join(', ');
-                    showNotification(`✅ ¡Comidas apuntadas para ${name}: ${mealsText}!`);
+                    const firebaseStatus = isFirebaseReady ? 'guardadas en Firebase' : 'guardadas en memoria local';
+                    showNotification(`✅ ¡Comidas ${firebaseStatus} para ${name}: ${mealsText}!`);
                 } else {
                     let errorMsg = '';
                     if (!name) errorMsg = 'Por favor, escribe tu nombre';
