@@ -12,26 +12,32 @@
         
         // Tu configuración de Firebase (DEBES REEMPLAZAR ESTOS VALORES)
         const firebaseConfig = {
-            apiKey: "AIzaSyDAJV3AY9ZM-vhgOadLCQkDhnkXzjhGiuI",
+            apiKey: "AIzaSyDAJV3AY9ZM-vhg0adLCQkDhnkXzjhGiuI",
             authDomain: "amona-chef.firebaseapp.com",
-            databaseURL: "https://amona-chef-default-rtdb.europe-west1.firebasedatabase.app",
+            databaseURL: "https://amona-chef-default-rtdb.europe-west1.firebasedatabase.app/",
             projectId: "amona-chef",
             storageBucket: "amona-chef.firebasestorage.app",
             messagingSenderId: "254579214307",
             appId: "1:254579214307:web:f986c3ec82009522a8c2d6"
         };
         
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        
-        // Hacer disponibles globalmente
-        window.firebaseDb = database;
-        window.firebaseRef = ref;
-        window.firebasePush = push;
-        window.firebaseOnValue = onValue;
-        window.firebaseRemove = remove;
-        window.firebaseInitialized = true;
+        // Verificar configuración
+        if (firebaseConfig.apiKey === "TU_API_KEY_AQUI") {
+            console.error("Firebase no configurado correctamente");
+            window.firebaseConfigError = true;
+        } else {
+            // Inicializar Firebase
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
+            
+            // Hacer disponibles globalmente
+            window.firebaseDb = database;
+            window.firebaseRef = ref;
+            window.firebasePush = push;
+            window.firebaseOnValue = onValue;
+            window.firebaseRemove = remove;
+            window.firebaseInitialized = true;
+        }
     </script>
     
     <style>
@@ -484,8 +490,8 @@
         // Inicializar Firebase y escuchar cambios en tiempo real
         async function initializeFirebase() {
             try {
-                // Verificar configuración
-                if (firebaseConfig.apiKey === "TU_API_KEY_AQUI") {
+                // Verificar si hay error de configuración
+                if (window.firebaseConfigError) {
                     throw new Error("Por favor, configura Firebase con tus credenciales reales");
                 }
 
