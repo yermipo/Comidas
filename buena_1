@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amona Chef - Planificador de Comidas</title>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        // Tu configuración de Firebase (DEBES REEMPLAZAR ESTOS VALORES)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAJV3AY9ZM-vhg0adLCQkDhnkXzjhGiuI",
+            authDomain: "amona-chef.firebaseapp.com",
+            databaseURL: "https://amona-chef-default-rtdb.europe-west1.firebasedatabase.app/",
+            projectId: "amona-chef",
+            storageBucket: "amona-chef.firebasestorage.app",
+            messagingSenderId: "254579214307",
+            appId: "1:254579214307:web:f986c3ec82009522a8c2d6"
+        };
+        
+        // Verificar configuración
+        if (firebaseConfig.apiKey === "TU_API_KEY_AQUI") {
+            console.error("Firebase no configurado correctamente");
+            window.firebaseConfigError = true;
+        } else {
+            // Inicializar Firebase
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
+            
+            // Hacer disponibles globalmente
+            window.firebaseDb = database;
+            window.firebaseRef = ref;
+            window.firebasePush = push;
+            window.firebaseOnValue = onValue;
+            window.firebaseRemove = remove;
+            window.firebaseInitialized = true;
+        }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .logo {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .firebase-status {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .firebase-status.connected {
+            background: #27ae60;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .calendar-section {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .days-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1px;
+            background: #ecf0f1;
+        }
+
+        .day-card {
+            background: white;
+            padding: 20px;
+            min-height: 200px;
+            border-bottom: 3px solid #ecf0f1;
+            transition: all 0.3s ease;
+        }
+
+        .day-card:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .day-header {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .meal-entry {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            box-shadow: 0 3px 10px rgba(253, 203, 110, 0.3);
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .meal-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .meal-time {
+            font-size: 12px;
+            color: #636e72;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 184, 148, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .realtime-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .realtime-indicator.disconnected {
+            background: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .logo {
+                font-size: 2em;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .days-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .day-time-selector label {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+            
+            .day-time-selector label > input[type="time"] {
+                margin-left: 0 !important;
+                margin-top: 10px !important;
+                width: 100% !important;
+            }
+            
+            .day-time-selector label > span {
+                margin-bottom: 5px !important;
+            }
+            
+            .btn {
+                width: 100%;
+                padding: 15px;
+                margin-top: 20px;
+            }
+
+            .realtime-indicator {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                font-size: 10px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="realtime-indicator disconnected" id="realtimeIndicator">🔴 Desconectado</div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="logo">👵🍽️ Amona Chef</div>
+            <div class="subtitle">Planificador de Comidas Familiares - Tiempo Real</div>
+        </div>
+
+        <div class="main-content">
+            <div class="firebase-status" id="firebaseStatus">
+                🔧 Configurando Firebase... Por favor, configura tu base de datos siguiendo las instrucciones.
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalMeals">0</div>
+                    <div class="stat-label">Comidas Planificadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="uniqueGrandchildren">0</div>
+                    <div class="stat-label">Nietos Diferentes</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">📝 Apuntar Comida</h2>
+                <form id="mealForm">
+                    <div class="form-group">
+                        <label for="grandchildName">👤 Nombre del Nieto:</label>
+                        <input type="text" id="grandchildName" required placeholder="Escribe tu nombre">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📅 Días y Horas de la Semana:</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px;">
+                            <div class="day-time-selector" data-day="lunes">
+                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
+                                    <input type="checkbox" value="lunes" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
+                                    <span style="flex: 1; font-weight: 600;">🌟 Lunes</span>
+                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                </label>
+                            </div>
+                            <div class="day-time-selector" data-day="martes">
+                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
+                                    <input type="checkbox" value="martes" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
+                                    <span style="flex: 1; font-weight: 600;">🌈 Martes</span>
+                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                </label>
+                            </div>
+                            <div class="day-time-selector" data-day="miércoles">
+                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
+                                    <input type="checkbox" value="miércoles" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
+                                    <span style="flex: 1; font-weight: 600;">🌸 Miércoles</span>
+                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                </label>
+                            </div>
+                            <div class="day-time-selector" data-day="jueves">
+                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
+                                    <input type="checkbox" value="jueves" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
+                                    <span style="flex: 1; font-weight: 600;">🍀 Jueves</span>
+                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                </label>
+                            </div>
+                            <div class="day-time-selector" data-day="viernes">
+                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
+                                    <input type="checkbox" value="viernes" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
+                                    <span style="flex: 1; font-weight: 600;">🎉 Viernes</span>
+                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                </label>
+                            </div>
+                            <div class="day-time-selector" data-day="sábado">
+                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
+                                    <input type="checkbox" value="sábado" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
+                                    <span style="flex: 1; font-weight: 600;">🌺 Sábado</span>
+                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                </label>
+                            </div>
+                            <div class="day-time-selector" data-day="domingo">
+                                <label style="display: flex; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 12px; cursor: pointer; border: 2px solid #e1e8ed; transition: all 0.3s ease;">
+                                    <input type="checkbox" value="domingo" class="day-checkbox" style="margin-right: 12px; transform: scale(1.3);">
+                                    <span style="flex: 1; font-weight: 600;">☀️ Domingo</span>
+                                    <input type="time" class="time-input" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;" disabled>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="submitBtn">✨ Apuntar Comida</button>
+                </form>
+            </div>
+
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    🗓️ Planificación Semanal de la Amona
+                </div>
+                <div class="days-container" id="weeklyCalendar">
+                    <!-- Los días se generarán dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales - solo una vez
+        let meals = [];
+        let isFirebaseReady = false;
+
+        // Días de la semana - solo una vez
+        const daysOfWeek = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+        const dayEmojis = {
+            'lunes': '🌟',
+            'martes': '🌈',
+            'miércoles': '🌸',
+            'jueves': '🍀',
+            'viernes': '🎉',
+            'sábado': '🌺',
+            'domingo': '☀️'
+        };
+
+        // Esperar a que Firebase esté listo
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const checkFirebase = () => {
+                    if (window.firebaseInitialized && window.firebaseDb) {
+                        resolve();
+                    } else {
+                        setTimeout(checkFirebase, 100);
+                    }
+                };
+                checkFirebase();
+            });
+        }
+
+        // Inicializar Firebase y escuchar cambios en tiempo real
+        async function initializeFirebase() {
+            try {
+                // Verificar si hay error de configuración
+                if (window.firebaseConfigError) {
+                    throw new Error("Por favor, configura Firebase con tus credenciales reales");
+                }
+
+                const mealsRef = window.firebaseRef(window.firebaseDb, 'meals');
+                
+                // Escuchar cambios en tiempo real
+                window.firebaseOnValue(mealsRef, (snapshot) => {
+                    const data = snapshot.val();
+                    meals = [];
+                    
+                    if (data) {
+                        Object.keys(data).forEach(key => {
+                            meals.push({
+                                id: key,
+                                ...data[key]
+                            });
+                        });
+                    }
+                    
+                    updateCalendar();
+                    updateStats();
+                    console.log('Datos actualizados en tiempo real:', meals.length, 'comidas');
+                });
+
+                console.log('Firebase inicializado correctamente');
+                
+            } catch (error) {
+                console.error('Error inicializando Firebase:', error);
+                throw error;
+            }
+        }
+
+        // Añadir comida a Firebase
+        async function addMealToFirebase(name, day, time) {
+            try {
+                const mealsRef = window.firebaseRef(window.firebaseDb, 'meals');
+                const newMeal = {
+                    name: name,
+                    day: day,
+                    time: time,
+                    timestamp: Date.now()
+                };
+                
+                await window.firebasePush(mealsRef, newMeal);
+                console.log('Comida añadida a Firebase:', newMeal);
+                
+            } catch (error) {
+                console.error('Error añadiendo comida a Firebase:', error);
+                showNotification('❌ Error guardando la comida. Inténtalo de nuevo.');
+            }
+        }
+
+        // Eliminar comida de Firebase
+        async function deleteMealFromFirebase(mealId) {
+            try {
+                const mealRef = window.firebaseRef(window.firebaseDb, `meals/${mealId}`);
+                await window.firebaseRemove(mealRef);
+                showNotification('🗑️ Comida eliminada correctamente');
+                
+            } catch (error) {
+                console.error('Error eliminando comida de Firebase:', error);
+                showNotification('❌ Error eliminando la comida. Inténtalo de nuevo.');
+            }
+        }
+
+        // Generar calendario semanal
+        function generateWeeklyCalendar() {
+            const calendar = document.getElementById('weeklyCalendar');
+            calendar.innerHTML = '';
+            
+            daysOfWeek.forEach(day => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.innerHTML = `
+                    <div class="day-header">${dayEmojis[day]} ${day}</div>
+                    <div class="meals-container" id="meals-${day}">
+                        <div style="text-align: center; color: #95a5a6; font-style: italic; padding: 20px;">
+                            No hay comidas programadas
+                        </div>
+                    </div>
+                `;
+                calendar.appendChild(dayCard);
+            });
+        }
+
+        // Actualizar calendario
+        function updateCalendar() {
+            // Limpiar todos los días
+            daysOfWeek.forEach(day => {
+                const container = document.getElementById(`meals-${day}`);
+                if (container) {
+                    container.innerHTML = '<div style="text-align: center; color: #95a5a6; font-style: italic; padding: 20px;">No hay comidas programadas</div>';
+                }
+            });
+            
+            // Agrupar comidas por día
+            const mealsByDay = {};
+            meals.forEach(meal => {
+                if (!mealsByDay[meal.day]) {
+                    mealsByDay[meal.day] = [];
+                }
+                mealsByDay[meal.day].push(meal);
+            });
+            
+            // Actualizar cada día
+            Object.keys(mealsByDay).forEach(day => {
+                const container = document.getElementById(`meals-${day}`);
+                if (container) {
+                    container.innerHTML = '';
+                    
+                    // Ordenar comidas por hora
+                    mealsByDay[day].sort((a, b) => a.time.localeCompare(b.time));
+                    
+                    mealsByDay[day].forEach(meal => {
+                        const mealElement = document.createElement('div');
+                        mealElement.className = 'meal-entry';
+                        mealElement.innerHTML = `
+                            <button class="delete-btn" onclick="deleteMealFromFirebase('${meal.id}')">×</button>
+                            <div class="meal-name">👤 ${meal.name}</div>
+                            <div class="meal-time">🕐 ${meal.time}</div>
+                        `;
+                        container.appendChild(mealElement);
+                    });
+                }
+            });
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            const totalMeals = meals.length;
+            const uniqueGrandchildren = [...new Set(meals.map(meal => meal.name.toLowerCase()))].length;
+            
+            document.getElementById('totalMeals').textContent = totalMeals;
+            document.getElementById('uniqueGrandchildren').textContent = uniqueGrandchildren;
+        }
+
+        // Limpiar formulario
+        function clearForm() {
+            document.getElementById('grandchildName').value = '';
+            const daySelectors = document.querySelectorAll('.day-time-selector');
+            daySelectors.forEach(selector => {
+                const checkbox = selector.querySelector('.day-checkbox');
+                const timeInput = selector.querySelector('.time-input');
+                const label = selector.querySelector('label');
+                
+                checkbox.checked = false;
+                timeInput.value = '';
+                timeInput.disabled = true;
+                label.style.background = '#f8f9fa';
+                label.style.borderColor = '#e1e8ed';
+                label.style.color = 'inherit';
+                label.style.transform = 'scale(1)';
+                label.style.boxShadow = 'none';
+            });
+        }
+
+        // Mostrar notificación
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 60px;
+                right: 20px;
+                background: linear-gradient(135deg, #00b894, #00cec9);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 10px 25px rgba(0, 184, 148, 0.3);
+                z-index: 1001;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease;
+                max-width: 300px;
+                word-wrap: break-word;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        // Actualizar estado de Firebase
+        function updateFirebaseStatus(connected, errorMessage = '') {
+            const status = document.getElementById('firebaseStatus');
+            if (connected) {
+                status.className = 'firebase-status connected';
+                status.innerHTML = '✅ Conectado a Firebase - Cambios en tiempo real activados';
+            } else {
+                status.className = 'firebase-status';
+                status.innerHTML = `❌ Error de Firebase: ${errorMessage || 'No se pudo conectar'}`;
+            }
+        }
+
+        // Actualizar indicador de tiempo real
+        function updateRealtimeIndicator(connected) {
+            const indicator = document.getElementById('realtimeIndicator');
+            if (connected) {
+                indicator.textContent = '🟢 Tiempo Real';
+                indicator.className = 'realtime-indicator';
+            } else {
+                indicator.textContent = '🔴 Desconectado';
+                indicator.className = 'realtime-indicator disconnected';
+            }
+        }
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', async function() {
+            generateWeeklyCalendar();
+            updateStats();
+            
+            // Configurar event listeners SIEMPRE (sin esperar Firebase)
+            setupEventListeners();
+            
+            try {
+                await waitForFirebase();
+                await initializeFirebase();
+                
+                // Firebase está listo
+                isFirebaseReady = true;
+                updateFirebaseStatus(true);
+                updateRealtimeIndicator(true);
+                
+            } catch (error) {
+                console.error('Error inicializando la aplicación:', error);
+                updateFirebaseStatus(false, error.message);
+                updateRealtimeIndicator(false);
+                // Permitir uso sin Firebase
+                console.log('Aplicación funcionará sin Firebase (solo en memoria)');
+            }
+        });
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Manejar el formulario
+            document.getElementById('mealForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('grandchildName').value.trim();
+                
+                // Obtener días y horas seleccionados
+                const selectedMeals = [];
+                const daySelectors = document.querySelectorAll('.day-time-selector');
+                
+                daySelectors.forEach(selector => {
+                    const checkbox = selector.querySelector('.day-checkbox');
+                    const timeInput = selector.querySelector('.time-input');
+                    
+                    if (checkbox.checked && timeInput.value) {
+                        selectedMeals.push({
+                            day: checkbox.value,
+                            time: timeInput.value
+                        });
+                    }
+                });
+                
+                if (name && selectedMeals.length > 0) {
+                    if (isFirebaseReady) {
+                        // Añadir comidas a Firebase
+                        selectedMeals.forEach(meal => {
+                            addMealToFirebase(name, meal.day, meal.time);
+                        });
+                    } else {
+                        // Añadir comidas en memoria (sin Firebase)
+                        selectedMeals.forEach(meal => {
+                            const newMeal = {
+                                id: Date.now() + Math.random(),
+                                name: name,
+                                day: meal.day,
+                                time: meal.time
+                            };
+                            meals.push(newMeal);
+                        });
+                        updateCalendar();
+                        updateStats();
+                    }
+                    
+                    // Limpiar formulario
+                    clearForm();
+                    
+                    // Mostrar confirmación
+                    const mealsText = selectedMeals.map(meal => `${meal.day} (${meal.time})`).join(', ');
+                    const firebaseStatus = isFirebaseReady ? 'guardadas en Firebase' : 'guardadas en memoria local';
+                    showNotification(`✅ ¡Comidas ${firebaseStatus} para ${name}: ${mealsText}!`);
+                } else {
+                    let errorMsg = '';
+                    if (!name) errorMsg = 'Por favor, escribe tu nombre';
+                    else if (selectedMeals.length === 0) errorMsg = 'Por favor, selecciona al menos un día y su hora';
+                    
+                    showNotification(`❌ ${errorMsg}`);
+                }
+            });
+
+            // Efectos para los checkboxes y campos de hora
+            const daySelectors = document.querySelectorAll('.day-time-selector');
+            daySelectors.forEach(selector => {
+                const checkbox = selector.querySelector('.day-checkbox');
+                const timeInput = selector.querySelector('.time-input');
+                const label = selector.querySelector('label');
+                
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        // Activar el día
+                        label.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                        label.style.borderColor = '#667eea';
+                        label.style.color = 'white';
+                        label.style.transform = 'scale(1.02)';
+                        timeInput.disabled = false;
+                        timeInput.style.background = '#fff';
+                        timeInput.focus();
+                    } else {
+                        // Desactivar el día
+                        label.style.background = '#f8f9fa';
+                        label.style.borderColor = '#e1e8ed';
+                        label.style.color = 'inherit';
+                        label.style.transform = 'scale(1)';
+                        timeInput.disabled = true;
+                        timeInput.value = '';
+                        timeInput.style.background = '#f5f5f5';
+                    }
+                });
+                
+                timeInput.addEventListener('change', function() {
+                    if (this.value && checkbox.checked) {
+                        label.style.boxShadow = '0 5px 15px rgba(102, 126, 234, 0.3)';
+                    } else {
+                        label.style.boxShadow = 'none';
+                    }
+                });
+            });
+        }
+
+        // Hacer funciones globales para los botones
+        window.deleteMealFromFirebase = deleteMealFromFirebase;
+
+        // Agregar estilos para las animaciones de notificaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
